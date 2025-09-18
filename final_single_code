@@ -1,0 +1,124 @@
+# customer_support_system_gui.py
+# Single-file Customer Support System with Tkinter GUI
+
+import tkinter as tk
+from tkinter import messagebox
+
+# -------------------------
+# In-memory Data Store
+# -------------------------
+tickets = []
+ticket_counter = 1
+
+
+# -------------------------
+# Ticket Manager Functions
+# -------------------------
+def create_ticket(name, issue):
+    global ticket_counter
+    ticket = {
+        "id": ticket_counter,
+        "name": name,
+        "issue": issue,
+        "status": "Open"
+    }
+    tickets.append(ticket)
+    ticket_counter += 1
+    return ticket
+
+
+def view_tickets():
+    return tickets
+
+
+def resolve_ticket(ticket_id):
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+            if ticket["status"] == "Resolved":
+                return False
+            ticket["status"] = "Resolved"
+            return True
+    return None
+
+
+# -------------------------
+# GUI Application
+# -------------------------
+class SupportSystemApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Customer Support System")
+        self.root.geometry("550x450")
+
+        # --- Create Ticket Section ---
+        tk.Label(root, text="Customer Name:", font=("Arial", 10, "bold")).pack()
+        self.entry_name = tk.Entry(root, width=40)
+        self.entry_name.pack(pady=2)
+
+        tk.Label(root, text="Issue Description:", font=("Arial", 10, "bold")).pack()
+        self.entry_issue = tk.Entry(root, width=40)
+        self.entry_issue.pack(pady=2)
+
+        tk.Button(root, text="Create Ticket", bg="lightgreen", command=self.create_ticket).pack(pady=5)
+
+        # --- View Tickets Section ---
+        tk.Button(root, text="View All Tickets", bg="lightblue", command=self.view_tickets).pack(pady=5)
+
+        # --- Resolve Ticket Section ---
+        tk.Label(root, text="Ticket ID to Resolve:", font=("Arial", 10, "bold")).pack()
+        self.entry_ticket_id = tk.Entry(root, width=10)
+        self.entry_ticket_id.pack(pady=2)
+        tk.Button(root, text="Resolve Ticket", bg="orange", command=self.resolve_ticket).pack(pady=5)
+
+        # --- Output Display Area ---
+        self.output_area = tk.Text(root, height=12, width=60, wrap="word")
+        self.output_area.pack(pady=10)
+
+    # -------------------------
+    # GUI Methods
+    # -------------------------
+    def create_ticket(self):
+        name = self.entry_name.get().strip()
+        issue = self.entry_issue.get().strip()
+        if name and issue:
+            ticket = create_ticket(name, issue)
+            messagebox.showinfo("Success", f"Ticket created with ID: {ticket['id']}")
+            self.entry_name.delete(0, tk.END)
+            self.entry_issue.delete(0, tk.END)
+        else:
+            messagebox.showwarning("Input Error", "Please enter both name and issue.")
+
+    def view_tickets(self):
+        all_tickets = view_tickets()
+        self.output_area.delete("1.0", tk.END)
+        if not all_tickets:
+            self.output_area.insert(tk.END, "No tickets found.\n")
+        else:
+            for t in all_tickets:
+                self.output_area.insert(
+                    tk.END,
+                    f"ID: {t['id']} | Name: {t['name']} | Issue: {t['issue']} | Status: {t['status']}\n"
+                )
+
+    def resolve_ticket(self):
+        try:
+            ticket_id = int(self.entry_ticket_id.get())
+            result = resolve_ticket(ticket_id)
+            if result is True:
+                messagebox.showinfo("Success", f"Ticket {ticket_id} resolved.")
+            elif result is False:
+                messagebox.showinfo("Info", "Ticket already resolved.")
+            else:
+                messagebox.showerror("Error", "Ticket not found.")
+        except ValueError:
+            messagebox.showerror("Input Error", "Please enter a valid Ticket ID.")
+        self.entry_ticket_id.delete(0, tk.END)
+
+
+# -------------------------
+# Run Application
+# -------------------------
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SupportSystemApp(root)
+    root.mainloop()
